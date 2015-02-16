@@ -46,6 +46,13 @@ public class UserAwareAPIProvider extends APIProviderImpl {
     }
 
     @Override
+    //todo give a better name
+    public void createProductAPI(API api) throws APIManagementException {
+        checkCreatePermission();
+        super.createProductAPI(api);
+    }
+
+    @Override
     public void createNewAPIVersion(API api, String newVersion) throws DuplicateAPIException,
             APIManagementException {
         checkCreatePermission();

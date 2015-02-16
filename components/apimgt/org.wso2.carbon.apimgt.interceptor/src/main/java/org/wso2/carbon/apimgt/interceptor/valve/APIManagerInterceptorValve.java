@@ -64,6 +64,9 @@ public class APIManagerInterceptorValve extends CarbonTomcatValve {
             return;
         }
 
+        //remove version from context - special case fro apps
+        context = stripVersionfromContext(context);
+
         boolean contextExist;
         Boolean contextValueInCache = null;
         if (APIUtil.getAPIContextCache().get(context) != null) {
@@ -147,6 +150,7 @@ public class APIManagerInterceptorValve extends CarbonTomcatValve {
             	try {
 	                interceptorOps.publishStatistics(request, requestTime,false);
                 }catch (APIManagementException e) {
+                        log.error("Error occurred when publishing stats",e);
                 	 log.error("Error occured when publishing stats",e);
                 }
             }
@@ -164,7 +168,27 @@ public class APIManagerInterceptorValve extends CarbonTomcatValve {
            }
         }
     }
- 
+
+    /**
+     * remove version of the application from the context
+     * @param appContext
+     * @return
+     */
+    private String stripVersionfromContext(String appContext) {
+        String versionString = appContext;
+        if (versionString.startsWith("/t/")) {
+            //remove tenant context
+            versionString = versionString.substring(appContext.lastIndexOf("/webapps/") + 9);
+        } else if(appContext.startsWith("/")) {
+            versionString = versionString.substring(1);
+        }
+        if (versionString.contains("/")) {
+            versionString = versionString.substring(versionString.indexOf("/"));
+        }
+        return appContext.substring(0, appContext.indexOf(versionString));
+    }
+
+    /**
 	/**
 	 * When we do GET call for WSDL/WADL, we do not want to
 	 * authenticate/throttle the request.

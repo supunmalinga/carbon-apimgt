@@ -215,4 +215,22 @@ public class APIManagetInterceptorUtils {
 		return accessToken;
 	}
 
+       /*public static String getAPIVersion(HttpServletRequest request) {
+               *//*int contextStartsIndex = (request.getRequestURI()).indexOf(request.getContextPath()) + 1;
+               }*//*
+        String appContext = request.getContextPath();
+        String versionString = appContext;
+        if (versionString.startsWith("/t/")) {
+            //remove tenant context
+            versionString = versionString.substring(appContext.lastIndexOf("/webapps/") + 9);
+        } else if(appContext.startsWith("/")) {
+            versionString = versionString.substring(1);
+        }
+        if (versionString.contains("/")) {
+            versionString = versionString.substring(versionString.indexOf("/") + 1);
+            return versionString;
+        } else {
+            return "";
+        }
+    }*/
 }

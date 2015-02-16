@@ -1623,6 +1623,99 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
     }
 
     /**
+     * This method is to functionality of create a new API in API-Provider
+     * @param apiData API model to create the API
+     * @return true if the API was added successfully
+     * @throws APIManagementException Wrapped exception by org.wso2.carbon.apimgt.api.APIManagementException
+     */
+    //todo rename method
+    public void createProductAPI(API apiData) throws APIManagementException {
+
+        boolean success = false;
+//        NativeObject apiData = (NativeObject) args[0];
+
+        String provider = apiData.getId().getProviderName();
+        String name = apiData.getId().getApiName();
+        String version = apiData.getId().getVersion();
+        String contextVal = apiData.getContext();
+
+        String providerDomain = MultitenantUtils.getTenantDomain(provider);
+
+        String context = contextVal.startsWith("/") ? contextVal : ("/" + contextVal);
+        if(!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(providerDomain)) {
+            //Create tenant aware context for API
+            context= "/t/" + providerDomain + context;
+        }
+
+        if (provider != null) {
+            provider = APIUtil.replaceEmailDomain(provider);
+        }
+
+        APIIdentifier apiId = apiData.getId();
+
+        if (isAPIAvailable(apiId)) {
+            handleException("Error occurred while adding the API. A duplicate API already exists for " +
+                    name + "-" + version);
+        }
+
+        //API api = new API(apiId); //todo changed here
+        API api = apiData;
+        api.setStatus(APIStatus.CREATED);
+        api.setContext(context);
+        api.setVisibility(APIConstants.API_GLOBAL_VISIBILITY);
+        api.setLastUpdated(new Date());
+
+        saveAPI(provider, api, true);
+    }
+
+    /**
+     * This method save or update the API object
+     * @param providerName
+     * @param api
+     * @param create
+     * @return
+     * @throws APIManagementException
+     */
+    private boolean saveAPI(String providerName, API api, boolean create) throws APIManagementException {
+        boolean success = false;
+        boolean isTenantFlowStarted = false;
+        try {
+            String tenantDomain = MultitenantUtils.getTenantDomain(APIUtil.replaceEmailDomainBack(providerName));
+            if(tenantDomain != null && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
+                isTenantFlowStarted = true;
+                PrivilegedCarbonContext.startTenantFlow();
+                PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain, true);
+            }
+            /*if (fileHostObject != null && fileHostObject.getJavaScriptFile().getLength() != 0) {
+                Icon icon = new Icon(fileHostObject.getInputStream(),
+                        fileHostObject.getJavaScriptFile().getContentType());
+                String thumbPath = APIUtil.getIconPath(api.getId());
+
+                String thumbnailUrl = addIcon(thumbPath, icon);
+                api.setThumbnailUrl(APIUtil.prependTenantPrefix(thumbnailUrl, providerName));
+
+                *//*Set permissions to anonymous role for thumbPath*//*
+                APIUtil.setResourcePermissions(api.getId().getProviderName(), null, null, thumbPath);
+            }*/
+            if (create) {
+                addAPI(api);
+            } else {
+                updateAPI(api);
+            }
+            success = true;
+        } catch (Exception e) {
+            handleException("Error while adding the API- " + api.getId().getApiName() + "-" + api.getId().getVersion(), e);
+            return false;
+        } finally {
+            if (isTenantFlowStarted) {
+                PrivilegedCarbonContext.endTenantFlow();
+            }
+        }
+
+        return success;
+    }
+
+    /**
      * This function is to set resource permissions based on its visibility
      *
      * @param artifactPath API resource path
