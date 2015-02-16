@@ -1626,13 +1626,10 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
      * This method is to functionality of create a new API in API-Provider
      * @param apiData API model to create the API
      * @return true if the API was added successfully
-     * @throws APIManagementException Wrapped exception by org.wso2.carbon.apimgt.api.APIManagementException
+     * @throws org.wso2.carbon.apimgt.api.APIManagementException Wrapped exception by org.wso2.carbon.apimgt.api.APIManagementException
      */
     //todo rename method
     public void createProductAPI(API apiData) throws APIManagementException {
-
-        boolean success = false;
-//        NativeObject apiData = (NativeObject) args[0];
 
         String provider = apiData.getId().getProviderName();
         String name = apiData.getId().getApiName();
@@ -1654,18 +1651,16 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
         APIIdentifier apiId = apiData.getId();
 
         if (isAPIAvailable(apiId)) {
-            handleException("Error occurred while adding the API. A duplicate API already exists for " +
-                    name + "-" + version);
+            handleException("Error occurred while adding the API. A duplicate API already exists for ".
+                    concat(name).concat("-").concat(version));
         }
 
-        //API api = new API(apiId); //todo changed here
-        API api = apiData;
-        api.setStatus(APIStatus.CREATED);
-        api.setContext(context);
-        api.setVisibility(APIConstants.API_GLOBAL_VISIBILITY);
-        api.setLastUpdated(new Date());
+        apiData.setStatus(APIStatus.CREATED);
+        apiData.setContext(context);
+        apiData.setVisibility(APIConstants.API_GLOBAL_VISIBILITY);
+        apiData.setLastUpdated(new Date());
 
-        saveAPI(provider, api, true);
+        saveAPI(provider, apiData, true);
     }
 
     /**
