@@ -64,7 +64,7 @@ public class APIManagerInterceptorValve extends CarbonTomcatValve {
             return;
         }
 
-        //remove version from context - special case fro apps
+        //todo remove version from context - special case for apps
         context = stripVersionfromContext(context);
 
         boolean contextExist;
